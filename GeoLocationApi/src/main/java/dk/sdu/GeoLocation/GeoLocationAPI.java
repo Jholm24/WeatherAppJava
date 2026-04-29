@@ -3,18 +3,19 @@ package dk.sdu.GeoLocation;
 import dk.sdu.scs.common.services.IGeoLocation;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.URI;
-
+import io.github.cdimascio.dotenv.Dotenv;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 public class GeoLocationAPI implements IGeoLocation {
-
-    //Api key skal lige fjernes så den ikke er hardcodet
-    private static final String API_KEY = "69f1d4fccf739012993022gib5bf90e";
+    private static final String API_KEY = System.getenv("GEOCODING_KEY");
     private static final String BASE_URL = "https://geocode.maps.co/search";
 
     private double latitude;
@@ -43,6 +44,7 @@ public class GeoLocationAPI implements IGeoLocation {
                     .build();
 
             String json = client.send(request, HttpResponse.BodyHandlers.ofString()).body();
+            System.out.println("API SVAR: " + json);
             parseCoordinates(json);
             return json;
 
