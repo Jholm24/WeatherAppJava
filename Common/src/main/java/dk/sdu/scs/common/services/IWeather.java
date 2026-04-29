@@ -1,4 +1,4 @@
-package dk.sdu.cbse.common.services;
+package dk.sdu.scs.common.services;
 
 public interface IWeather {
 
