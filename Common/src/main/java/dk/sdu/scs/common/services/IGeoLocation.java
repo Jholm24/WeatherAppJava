@@ -7,5 +7,4 @@ public interface IGeoLocation {
     double getLongitude();
 
     String getAll(String address);
-    //TODO
 }
