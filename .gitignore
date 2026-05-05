@@ -3,7 +3,7 @@
 *.jar
 *.war
 *.ear
-
+.env
 # JPMS module output directories
 out/
 mods/
@@ -33,4 +33,4 @@ build/
 # Logs
 *.log
 
-.env
+*.env

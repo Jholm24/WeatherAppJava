@@ -12,6 +12,7 @@
     <modules>
         <module>Common</module>
         <module>GeoLocationApi</module>
+        <module>GoogleWeather</module>
     </modules>
 
     <properties>
