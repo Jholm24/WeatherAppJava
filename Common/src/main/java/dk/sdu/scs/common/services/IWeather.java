@@ -11,7 +11,7 @@ public interface IWeather {
 
     double getWindSpeed();
 
-    int getWindDirection();
+    String getWindDirection();
 
     String getCloudCover();
 }

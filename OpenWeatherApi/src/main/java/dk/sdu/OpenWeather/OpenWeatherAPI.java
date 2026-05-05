@@ -2,6 +2,7 @@
 
 import dk.sdu.scs.common.services.IWeather;
 import dk.sdu.scs.common.services.IGeoLocation;
+import org.json.JSONObject;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -19,7 +20,6 @@ public class OpenWeatherAPI implements IWeather {
     private double temp;
     private double feelsLike;
     private int humidity;
-    private int pressure;
     private int windDeg; // methods need to take degrees and converts to wind direction.
     private int cloudCover;
 
@@ -44,7 +44,7 @@ public class OpenWeatherAPI implements IWeather {
         geoLocation.getAll(address);
         this.latitude = geoLocation.getLatitude();
         this.longitude = geoLocation.getLongitude();
-        String requestURL = baseUrl +"?lat=" + latitude + "&lon=" + longitude + "&" + excludeData + "&appid=" + API_Key;
+        String requestURL = baseUrl +"?lat=" + latitude + "&lon=" + longitude + "&"+ "units=metric&" + excludeData + "&appid=" + API_Key;
         try {
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
@@ -53,6 +53,13 @@ public class OpenWeatherAPI implements IWeather {
                     .build();
             String json = client.send(request, HttpResponse.BodyHandlers.ofString()).body();
             System.out.println("API SVAR: " + json);
+            JSONObject current = new JSONObject(json).getJSONObject("current");
+            this.temp = current.getDouble("temp");
+            this.feelsLike = current.getDouble("feels_like");
+            this.humidity = current.getInt("humidity");
+            this.windDeg = current.getInt("wind_deg");
+            this.windSpeed = current.getDouble("wind_speed");
+            this.cloudCover = current.getInt("clouds");
             return json;
         }
         catch (Exception e)
@@ -63,31 +70,63 @@ public class OpenWeatherAPI implements IWeather {
     }
     @Override
     public double getTemperature() {
-        return 0;
+        return temp;
     }
 
     @Override
     public double getFeelsLikeTemperature() {
-        return 0;
+        return  feelsLike;
     }
 
     @Override
     public double getHumidity() {
-        return 0;
+        return  humidity;
     }
 
     @Override
     public double getWindSpeed() {
-        return 0;
+        return  windSpeed;
     }
 
     @Override
-    public int getWindDirection() {
-        return 0;
+    public String getWindDirection() {
+        int d = ((this.windDeg % 360) + 360) % 360;
+        if (d < 22.5) {
+            return "N";
+        } else if (d < 67.5) {
+            return "NØ";
+        } else if (d < 112.5) {
+            return "Ø";
+        } else if (d < 157.5) {
+            return "SØ";
+        } else if (d < 202.5) {
+            return "S";
+        } else if (d < 247.5) {
+            return "SV";
+        } else if (d < 292.5) {
+            return "V";
+        } else if (d < 337.5) {
+            return "NV";
+        } else {
+            return "N";
+        }
     }
 
     @Override
     public String getCloudCover() {
-        return "";
+        int cloud = this.cloudCover;
+        if(cloud <=10)
+        {
+            return "Sky frit";
+        }
+        else if(cloud <=25)
+        {
+            return "Skyer";
+        } else if (cloud <=50) {
+            return "Let Overskyet";
+        }
+        else {
+            return "Overskyet";
+        }
     }
 }
