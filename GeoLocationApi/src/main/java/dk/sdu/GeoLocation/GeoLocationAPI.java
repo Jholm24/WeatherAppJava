@@ -4,13 +4,11 @@ import dk.sdu.scs.common.services.IGeoLocation;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.URI;
-import io.github.cdimascio.dotenv.Dotenv;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
