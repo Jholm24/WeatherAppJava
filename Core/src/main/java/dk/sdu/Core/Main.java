@@ -88,6 +88,7 @@ public class Main {
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             server.stop(0);
+            ctx.close();
             System.out.println("Server stopped.");
         }));
 
@@ -95,6 +96,10 @@ public class Main {
             Desktop.getDesktop().browse(URI.create(url));
         }
 
-        Thread.currentThread().join();
+        // Exit when stdin closes (terminal window closed)
+        try {
+            while (System.in.read() != -1) {}
+        } catch (IOException ignored) {}
+        System.exit(0);
     }
 }
