@@ -2,10 +2,7 @@ package dk.sdu.scs.common.services;
 
 public interface IWeather {
 
-    void getAll(double lat, double lon);
-
-    void requestAPI();
-
+    String getAll(String address);
     double getTemperature();
 
     double getFeelsLikeTemperature();
@@ -14,7 +11,7 @@ public interface IWeather {
 
     double getWindSpeed();
 
-    int getWindDirection();
+    String getWindDirection();
 
     String getCloudCover();
 }
