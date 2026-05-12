@@ -37,6 +37,11 @@ public class GoogleWeatherAPI implements IWeather {
 
 
     @Override
+    public String getName() {
+        return "GoogleWeather";
+    }
+
+    @Override
     public String getAll(String address) {
         geoLocation.getAll(address);
         double latitude = geoLocation.getLatitude();
