@@ -2,6 +2,7 @@ package dk.sdu.OpenWeather;
 
 import dk.sdu.scs.common.services.IWeather;
 import dk.sdu.scs.common.services.IGeoLocation;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.json.JSONObject;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -12,21 +13,19 @@ import java.util.ServiceLoader;
 public class OpenWeatherAPI implements IWeather {
 
     private final IGeoLocation geoLocation;
-    private static final String excludeData = "exclude=minutely,hourly,daily,alerts";
     private double latitude;
     private double longitude;
-
+    private static final String excludeData = "exclude=minutely,hourly,daily,alerts";
     // data fields
     private double temp;
     private double feelsLike;
     private int humidity;
-    private int windDeg; // methods need to take degrees and converts to wind direction.
+    private int windDeg;
     private int cloudCover;
-
     private double windSpeed;
 
-    private static final String API_Key = System.getenv("OPENWEATHER_KEY");
-    private static final String  baseUrl = "https://api.openweathermap.org/data/3.0/onecall";
+    private static final String API_Key = Dotenv.load().get("OPENWEATHER_KEY");
+    private static final String baseUrl = "https://api.openweathermap.org/data/2.5/weather";
 
     // Constructor for serviceLoader
     public OpenWeatherAPI()
@@ -58,13 +57,13 @@ public class OpenWeatherAPI implements IWeather {
                     .build();
             String json = client.send(request, HttpResponse.BodyHandlers.ofString()).body();
             System.out.println("API SVAR: " + json);
-            JSONObject current = new JSONObject(json).getJSONObject("current");
-            this.temp = current.getDouble("temp");
-            this.feelsLike = current.getDouble("feels_like");
-            this.humidity = current.getInt("humidity");
-            this.windDeg = current.getInt("wind_deg");
-            this.windSpeed = current.getDouble("wind_speed");
-            this.cloudCover = current.getInt("clouds");
+            JSONObject root = new JSONObject(json);
+            this.temp = root.getJSONObject("main").getDouble("temp");
+            this.feelsLike = root.getJSONObject("main").getDouble("feels_like");
+            this.humidity = root.getJSONObject("main").getInt("humidity");
+            this.windDeg = root.getJSONObject("wind").getInt("deg");
+            this.windSpeed = root.getJSONObject("wind").getDouble("speed");
+            this.cloudCover = root.getJSONObject("clouds").getInt("all");
             return json;
         }
         catch (Exception e)
