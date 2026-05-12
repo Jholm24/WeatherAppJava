@@ -6,6 +6,8 @@ module Core {
     requires java.desktop;
     requires jdk.httpserver;
     requires spring.context;
+    requires java.sql;
+    requires io.github.cdimascio.dotenv.java;
     uses IWeather;
     uses IGeoLocation;
     opens dk.sdu.Core to spring.core, spring.beans, spring.context;

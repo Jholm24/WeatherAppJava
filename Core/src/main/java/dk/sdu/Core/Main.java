@@ -1,6 +1,7 @@
 package dk.sdu.Core;
 
 import com.sun.net.httpserver.HttpServer;
+import dk.sdu.scs.common.services.IGeoLocation;
 import dk.sdu.scs.common.services.IWeather;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
@@ -14,11 +15,11 @@ import java.util.List;
 public class Main {
     public static void main(String[] args) throws Exception {
         AnnotationConfigApplicationContext ctx =
-                new
-                        AnnotationConfigApplicationContext(ModuleConfig.class);
-        List<IWeather> weatherServices =
-                ctx.getBean("IWeatherServiceList", List.class);
+                new AnnotationConfigApplicationContext(ModuleConfig.class);
+        List<IWeather> weatherServices = ctx.getBean("IWeatherServiceList", List.class);
+        List<IGeoLocation> geoServices = ctx.getBean("IGeoLocationServiceList", List.class);
 
+        WeatherRepository repo = new WeatherRepository();
         int port = 8080;
 
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
@@ -45,6 +46,7 @@ public class Main {
                 exchange.getResponseBody().close();
             }
         });
+
         server.createContext("/api/weather", exchange -> {
             String query = exchange.getRequestURI().getQuery();
             String address = "Copenhagen";
@@ -56,9 +58,28 @@ public class Main {
                 }
             }
 
+            // Slå adresse op og gem i GeoAddresses
+            IGeoLocation geo = geoServices.get(0);
+            geo.getAll(address);
+            int addressId;
+            try {
+                addressId = repo.saveGeoAddress(address, geo.getLatitude(), geo.getLongitude());
+            } catch (Exception e) {
+                e.printStackTrace();
+                exchange.sendResponseHeaders(500, -1);
+                exchange.getResponseBody().close();
+                return;
+            }
+
+            // Hent vejrdata fra hvert API og gem i WeatherReadings
             StringBuilder combined = new StringBuilder("[");
             for (IWeather w : weatherServices) {
                 w.getAll(address);
+                try {
+                    repo.saveWeatherReading(addressId, w);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 combined.append("{")
                         .append("\"provider\":\"").append(w.getName()).append("\",")
                         .append("\"temperature\":").append(w.getTemperature()).append(",")
