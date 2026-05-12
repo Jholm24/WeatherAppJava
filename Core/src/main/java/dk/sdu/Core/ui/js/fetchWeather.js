@@ -1,6 +1,6 @@
 
 function fetchWeather() {
-    const address = document.getElementById('address').value;
+    const address = document.getElementById('address').value.toLowerCase();
     const resultsDiv = document.getElementById('results');
     resultsDiv.innerHTML = 'Henter vejrdata...';
 
