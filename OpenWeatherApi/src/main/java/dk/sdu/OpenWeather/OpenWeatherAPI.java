@@ -1,4 +1,4 @@
-﻿package dk.sdu.OpenWeather;
+package dk.sdu.OpenWeather;
 
 import dk.sdu.scs.common.services.IWeather;
 import dk.sdu.scs.common.services.IGeoLocation;
@@ -38,6 +38,11 @@ public class OpenWeatherAPI implements IWeather {
         this.geoLocation = geoLocation;
     }
 
+
+    @Override
+    public String getName() {
+        return "OpenWeather";
+    }
 
     @Override
     public String getAll(String address) {

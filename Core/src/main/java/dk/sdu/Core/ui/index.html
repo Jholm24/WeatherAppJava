@@ -3,12 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <title>WeatherApp</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        input { padding: 8px; font-size: 16px; width: 300px; }
+        button { padding: 8px 16px; font-size: 16px; cursor: pointer; }
+        .provider-card { border: 1px solid #ccc; border-radius: 8px; padding: 16px; margin-top: 16px; }
+        .provider-card h2 { margin-top: 0; }
+        .error { color: red; }
+    </style>
 </head>
 <body>
+    <h1>WeatherApp</h1>
 
-    <p>hej</p>
-    <p>lad os lave en sej hjemmeside</p>
+    <input id="address" type="text" placeholder="Indtast by fx. Odense" />
+    <button onclick="fetchWeather()">Hent vejr</button>
 
+    <div id="results"></div>
 
+    <script>
+        function fetchWeather() {
+            const address = document.getElementById('address').value;
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = 'Henter vejrdata...';
+
+            fetch(`/api/weather?address=${encodeURIComponent(address)}`)
+                .then(res => res.json())
+                .then(data => {
+                    resultsDiv.innerHTML = '';
+                    data.forEach(entry => {
+                        const card = document.createElement('div');
+                        card.className = 'provider-card';
+                        card.innerHTML = `
+                            <h2>${entry.provider}</h2>
+                            <p>Temperatur: ${entry.temperature} °C</p>
+                            <p>Føles som: ${entry.feelsLike} °C</p>
+                            <p>Luftfugtighed: ${entry.humidity} %</p>
+                            <p>Vindhastighed: ${entry.windSpeed} m/s</p>
+                            <p>Vindretning: ${entry.windDirection}</p>
+                            <p>Skydække: ${entry.cloudCover}</p>
+                        `;
+                        resultsDiv.appendChild(card);
+                    });
+                })
+                .catch(err => {
+                    resultsDiv.innerHTML = `<p class="error">Fejl: ${err.message}</p>`;
+                });
+        }
+    </script>
 </body>
 </html>

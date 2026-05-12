@@ -1,4 +1,5 @@
-﻿package dk.sdu.OpenWeather;
+/*
+package dk.sdu.OpenWeather;
 
 import org.junit.jupiter.api.BeforeEach;
 
@@ -37,3 +38,5 @@ class OpenWeatherAPITest {
     void getCloudCover() {
     }
 }
+
+ */

@@ -1,4 +1,4 @@
-﻿import dk.sdu.scs.common.services.IWeather;
+import dk.sdu.scs.common.services.IWeather;
 import dk.sdu.OpenWeather.OpenWeatherAPI;
 import dk.sdu.scs.common.services.IGeoLocation;
 module OpenWeatherApi {
