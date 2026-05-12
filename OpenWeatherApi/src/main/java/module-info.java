@@ -6,5 +6,6 @@ module OpenWeatherApi {
     requires dk.sdu.scs.common;
     requires java.net.http;
     requires org.json;
+    requires io.github.cdimascio.dotenv.java;
     provides IWeather with OpenWeatherAPI;
 }

@@ -2,6 +2,7 @@ package dk.sdu.GoogleWeather;
 
 import dk.sdu.scs.common.services.IGeoLocation;
 import dk.sdu.scs.common.services.IWeather;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.json.JSONObject;
 
 import java.net.URI;
@@ -23,7 +24,7 @@ public class GoogleWeatherAPI implements IWeather {
     private int cloudCover;
 
 
-    private static final String API_Key = System.getenv("GOOGLE_KEY");
+    private static final String API_Key = Dotenv.load().get("GOOGLE_WEATHER_KEY");
     private static final String BASE_URL = "https://weather.googleapis.com/v1/currentConditions:lookup";
 
     public GoogleWeatherAPI(){
@@ -47,26 +48,23 @@ public class GoogleWeatherAPI implements IWeather {
         double latitude = geoLocation.getLatitude();
         double longitude = geoLocation.getLongitude();
 
-        String requestBody = "{\"location\":{\"latitude\":" + latitude + ",\"longitude\":" + longitude + "},\"unitsSystem\":\"METRIC\"}";
-
         try {
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(BASE_URL + "?key=" + API_Key))
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                    .uri(URI.create(BASE_URL + "?key=" + API_Key + "&location.latitude=" + latitude + "&location.longitude=" + longitude))
+                    .GET()
                     .build();
 
             String json = client.send(request, HttpResponse.BodyHandlers.ofString()).body();
             System.out.println("API SVAR: " + json);
 
-            JSONObject current = new JSONObject(json).getJSONObject("currentConditions");
-            this.celcius = current.getJSONObject("temperature").getDouble("degrees");
-            this.feelsLikeCelcius = current.getJSONObject("feelsLikeTemperature").getDouble("degrees");
-            this.humidity = current.getInt("relativeHumidity");
-            this.windSpeed = current.getJSONObject("wind").getJSONObject("speed").getDouble("value");
-            this.windDirection = current.getJSONObject("wind").getJSONObject("direction").getDouble("degrees");
-            this.cloudCover = current.getInt("cloudCover");
+            JSONObject root = new JSONObject(json);
+            this.celcius = Math.round(root.getJSONObject("temperature").getDouble("degrees") * 100.0) / 100.0;
+            this.feelsLikeCelcius = Math.round(root.getJSONObject("feelsLikeTemperature").getDouble("degrees") * 100.0) / 100.0;
+            this.humidity = root.getInt("relativeHumidity");
+            this.windSpeed = Math.round((root.getJSONObject("wind").getJSONObject("speed").getDouble("value") / 3.6) * 100.0) / 100.0;
+            this.windDirection = root.getJSONObject("wind").getJSONObject("direction").getDouble("degrees");
+            this.cloudCover = root.getInt("cloudCover");
             return json;
         } catch (Exception e) {
             e.printStackTrace();

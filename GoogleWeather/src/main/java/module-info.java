@@ -6,6 +6,7 @@ module GoogleWeather {
     requires dk.sdu.scs.common;
     requires org.json;
     requires java.net.http;
+    requires io.github.cdimascio.dotenv.java;
     uses IGeoLocation;
     provides IWeather with GoogleWeatherAPI;
 }

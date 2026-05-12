@@ -123,9 +123,8 @@
                             <executable>java</executable>
                             <workingDirectory>.</workingDirectory>
                             <arguments>
-                                <argument>-classpath</argument>
-                                <argument>mods-mvn/*</argument>
-                                <argument>dk.sdu.Core.Main</argument>
+                                <argument>--module-path=mods-mvn</argument>
+                                <argument>--module=Core/dk.sdu.Core.Main</argument>
                             </arguments>
                         </configuration>
                     </plugin>
