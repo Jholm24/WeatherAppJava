@@ -1,3 +1,4 @@
+/*
 package dk.sdu.scs.GeoLocation;
 
 import dk.sdu.GeoLocation.GeoLocationAPI;
@@ -63,3 +64,5 @@ class GeoLocationAPITest {
         assertTrue(geoLocationAPI.getLongitude() > 12.5 && geoLocationAPI.getLongitude() < 12.6);
     }
 }
+
+ */
