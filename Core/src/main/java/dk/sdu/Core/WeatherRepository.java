@@ -55,4 +55,35 @@ public class WeatherRepository {
             }
         }
     }
+
+    public String getHistory(String address) throws SQLException {
+        String sql = """
+                SELECT w.created_at, s.name AS source, w.temp, w.humidity, w.windSpeed
+                FROM WeatherReadings w
+                JOIN WeatherSources s ON s.id = w.source_id
+                JOIN GeoAddresses g ON g.id = w.address_id
+                WHERE g.address = ?
+                ORDER BY w.created_at ASC
+                """;
+        StringBuilder json = new StringBuilder("[");
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, address);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                json.append("{")
+                        .append("\"time\":\"").append(rs.getTimestamp("created_at").toInstant()).append("\",")
+                        .append("\"source\":\"").append(rs.getString("source")).append("\",")
+                        .append("\"temp\":").append(rs.getBigDecimal("temp")).append(",")
+                        .append("\"humidity\":").append(rs.getInt("humidity")).append(",")
+                        .append("\"windSpeed\":").append(rs.getBigDecimal("windspeed"))
+                        .append("},");
+            }
+        }
+        if (json.charAt(json.length() - 1) == ',') {
+            json.deleteCharAt(json.length() - 1);
+        }
+        json.append("]");
+        return json.toString();
+    }
 }

@@ -102,6 +102,35 @@ public class Main {
             exchange.getResponseBody().close();
         });
 
+        server.createContext("/api/history", exchange -> {
+            String query = exchange.getRequestURI().getQuery();
+            String address = null;
+            if (query != null) {
+                for (String param : query.split("&")) {
+                    if (param.startsWith("address=")) {
+                        address = param.substring(8);
+                    }
+                }
+            }
+            if (address == null || address.isBlank()) {
+                exchange.sendResponseHeaders(400, -1);
+                exchange.getResponseBody().close();
+                return;
+            }
+            try {
+                String json = repo.getHistory(address);
+                byte[] bytes = json.getBytes();
+                exchange.getResponseHeaders().set("Content-Type", "application/json");
+                exchange.sendResponseHeaders(200, bytes.length);
+                exchange.getResponseBody().write(bytes);
+            } catch (Exception e) {
+                e.printStackTrace();
+                exchange.sendResponseHeaders(500, -1);
+            } finally {
+                exchange.getResponseBody().close();
+            }
+        });
+
         server.start();
 
         String url = "http://localhost:" + port;
