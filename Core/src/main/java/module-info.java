@@ -11,4 +11,5 @@ module Core {
     uses IWeather;
     uses IGeoLocation;
     opens dk.sdu.Core to spring.core, spring.beans, spring.context;
+    opens dk.sdu.Core.config to spring.core, spring.beans, spring.context;
 }

@@ -1,4 +1,4 @@
-package dk.sdu.Core;
+package dk.sdu.Core.db;
 
 import dk.sdu.scs.common.services.IWeather;
 
