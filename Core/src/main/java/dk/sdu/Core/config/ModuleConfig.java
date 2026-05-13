@@ -1,4 +1,4 @@
-package dk.sdu.Core;
+package dk.sdu.Core.config;
 import java.util.List;
 import java.util.ServiceLoader;
 import static java.util.stream.Collectors.toList;

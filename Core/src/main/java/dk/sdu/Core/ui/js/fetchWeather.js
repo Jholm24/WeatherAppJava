@@ -1,6 +1,13 @@
 const POLL_INTERVAL_MS = 1000 * 10 * 60;
 let pollingInterval = null;
 
+const alertSource = new EventSource('/api/alerts');
+alertSource.onmessage = e => {
+    const banner = document.getElementById('wind-alert');
+    banner.textContent = e.data;
+    banner.style.display = 'block';
+};
+
 function fetchWeather() {
     const address = document.getElementById('address').value.toLowerCase();
     const resultsDiv = document.getElementById('results');

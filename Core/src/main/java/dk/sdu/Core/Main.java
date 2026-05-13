@@ -1,16 +1,17 @@
 package dk.sdu.Core;
 
 import com.sun.net.httpserver.HttpServer;
+import dk.sdu.Core.config.ModuleConfig;
 import dk.sdu.scs.common.services.IGeoLocation;
 import dk.sdu.scs.common.services.IWeather;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.awt.Desktop;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.List;
+import java.util.concurrent.Executors;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -19,122 +20,16 @@ public class Main {
         List<IWeather> weatherServices = ctx.getBean("IWeatherServiceList", List.class);
         List<IGeoLocation> geoServices = ctx.getBean("IGeoLocationServiceList", List.class);
 
-        WeatherRepository repo = new WeatherRepository();
+        WeatherFacade weatherFacade = new WeatherFacade(weatherServices, geoServices);
+
         int port = 8080;
-
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
-        server.createContext("/", exchange -> {
-            String path = exchange.getRequestURI().getPath();
-            if (path.equals("/") || path.equals("/index.html")) {
-                path = "/ui/index.html";
-            }
-            try (InputStream is = Main.class.getResourceAsStream(path)) {
-                if (is == null) {
-                    exchange.sendResponseHeaders(404, -1);
-                    return;
-                }
-                byte[] bytes = is.readAllBytes();
-                String contentType = path.endsWith(".html") ? "text/html" :
-                                     path.endsWith(".css")  ? "text/css"  :
-                                     path.endsWith(".js")   ? "application/javascript" : "application/octet-stream";
-                exchange.getResponseHeaders().set("Content-Type", contentType);
-                exchange.sendResponseHeaders(200, bytes.length);
-                exchange.getResponseBody().write(bytes);
-            } catch (IOException e) {
-                exchange.sendResponseHeaders(500, -1);
-            } finally {
-                exchange.getResponseBody().close();
-            }
-        });
-
-        server.createContext("/api/weather", exchange -> {
-            String query = exchange.getRequestURI().getQuery();
-            String address = "Copenhagen";
-            if (query != null) {
-                for (String param : query.split("&")) {
-                    if (param.startsWith("address=")) {
-                        address = param.substring(8);
-                    }
-                }
-            }
-
-            // Slå adresse op og gem i GeoAddresses
-            IGeoLocation geo = geoServices.get(0);
-            geo.getAll(address);
-            int addressId;
-            try {
-                addressId = repo.saveGeoAddress(address, geo.getLatitude(), geo.getLongitude());
-            } catch (Exception e) {
-                e.printStackTrace();
-                exchange.sendResponseHeaders(500, -1);
-                exchange.getResponseBody().close();
-                return;
-            }
-
-            // Hent vejrdata fra hvert API og gem i WeatherReadings
-            StringBuilder combined = new StringBuilder("[");
-            for (IWeather w : weatherServices) {
-                w.getAll(address);
-                try {
-                    repo.saveWeatherReading(addressId, w);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                combined.append("{")
-                        .append("\"provider\":\"").append(w.getName()).append("\",")
-                        .append("\"temperature\":").append(w.getTemperature()).append(",")
-                        .append("\"feelsLike\":").append(w.getFeelsLikeTemperature()).append(",")
-                        .append("\"humidity\":").append(w.getHumidity()).append(",")
-                        .append("\"windSpeed\":").append(w.getWindSpeed()).append(",")
-                        .append("\"windDirection\":\"").append(w.getWindDirection()).append("\",")
-                        .append("\"cloudCover\":\"").append(w.getCloudCover()).append("\"")
-                        .append("},");
-            }
-            if (combined.charAt(combined.length() - 1) == ',') {
-                combined.deleteCharAt(combined.length() - 1);
-            }
-            combined.append("]");
-
-            byte[] bytes = combined.toString().getBytes();
-            exchange.getResponseHeaders().set("Content-Type", "application/json");
-            exchange.sendResponseHeaders(200, bytes.length);
-            exchange.getResponseBody().write(bytes);
-            exchange.getResponseBody().close();
-        });
-
-        server.createContext("/api/history", exchange -> {
-            String query = exchange.getRequestURI().getQuery();
-            String address = null;
-            if (query != null) {
-                for (String param : query.split("&")) {
-                    if (param.startsWith("address=")) {
-                        address = param.substring(8);
-                    }
-                }
-            }
-            if (address == null || address.isBlank()) {
-                exchange.sendResponseHeaders(400, -1);
-                exchange.getResponseBody().close();
-                return;
-            }
-            try {
-                String json = repo.getHistory(address);
-                byte[] bytes = json.getBytes();
-                exchange.getResponseHeaders().set("Content-Type", "application/json");
-                exchange.sendResponseHeaders(200, bytes.length);
-                exchange.getResponseBody().write(bytes);
-            } catch (Exception e) {
-                e.printStackTrace();
-                exchange.sendResponseHeaders(500, -1);
-            } finally {
-                exchange.getResponseBody().close();
-            }
-        });
-
+        server.setExecutor(Executors.newCachedThreadPool());
+        weatherFacade.registerRoutes(server);
         server.start();
 
-        String url = "http://localhost:" + port;
-        System.out.println("Server started on " + url);
+        String serverUrl = "http://localhost:" + port;
+        System.out.println("Server started on " + serverUrl);
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             server.stop(0);
@@ -143,7 +38,7 @@ public class Main {
         }));
 
         if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-            Desktop.getDesktop().browse(URI.create(url));
+            Desktop.getDesktop().browse(URI.create(serverUrl));
         }
 
         // Exit when stdin closes (terminal window closed)
