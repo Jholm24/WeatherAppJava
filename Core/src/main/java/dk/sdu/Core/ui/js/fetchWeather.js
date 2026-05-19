@@ -1,4 +1,3 @@
-const POLL_INTERVAL_MS = 1000 * 10 * 60;
 let pollingInterval = null;
 
 const alertSource = new EventSource('/api/alerts');
@@ -15,13 +14,16 @@ function fetchWeather() {
 
     clearInterval(pollingInterval);
 
+    const minutes = parseInt(document.getElementById('poll-interval').value, 10);
+    const pollIntervalMs = minutes * 60 * 1000;
+
     fetchAndRender(address, resultsDiv)
         .then(() => updateGraph(address))
         .then(() => {
             pollingInterval = setInterval(() => {
                 fetchAndRender(address, resultsDiv)
                     .then(() => updateGraph(address));
-            }, POLL_INTERVAL_MS);
+            }, pollIntervalMs);
         });
 }
 

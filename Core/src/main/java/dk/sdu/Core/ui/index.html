@@ -22,6 +22,11 @@
     <h1>WeatherApp</h1>
 
     <label for="address"></label><input id="address" type="text" placeholder="Indtast by fx. Odense" />
+    <select id="poll-interval">
+        <option value="15">Opdater hvert 15. minut</option>
+        <option value="30">Opdater hvert 30. minut</option>
+        <option value="45">Opdater hvert 45. minut</option>
+    </select>
     <button onclick="fetchWeather()">Hent vejr</button>
 
     <div id="wind-alert"></div>
