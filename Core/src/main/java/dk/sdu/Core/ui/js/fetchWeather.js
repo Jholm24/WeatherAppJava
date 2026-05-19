@@ -8,8 +8,14 @@ alertSource.onmessage = e => {
 };
 
 function fetchWeather() {
-    const address = document.getElementById('address').value.toLowerCase();
+    const address = document.getElementById('address').value.trim().toLowerCase();
     const resultsDiv = document.getElementById('results');
+
+    if (!address) {
+        document.getElementById('address').reportValidity();
+        return;
+    }
+
     resultsDiv.innerHTML = 'Henter vejrdata...';
 
     clearInterval(pollingInterval);
