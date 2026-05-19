@@ -1,5 +1,6 @@
 package dk.sdu.Core;
 
+import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import dk.sdu.Core.db.WeatherRepository;
@@ -7,11 +8,12 @@ import dk.sdu.Core.observer.WeatherEventPublisher;
 import dk.sdu.Core.observer.WindAlertObserver;
 import dk.sdu.scs.common.services.IGeoLocation;
 import dk.sdu.scs.common.services.IWeather;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class WeatherFacade {
@@ -21,6 +23,7 @@ public class WeatherFacade {
     private final WeatherRepository repository = new WeatherRepository();
     private final List<OutputStream> sseClients = new CopyOnWriteArrayList<>();
     private final WeatherEventPublisher eventPublisher = new WeatherEventPublisher();
+    private final Gson gson = new Gson();
 
     public WeatherFacade(List<IWeather> weatherServices, List<IGeoLocation> geoServices) {
         this.weatherServices = weatherServices;
@@ -95,24 +98,21 @@ public class WeatherFacade {
         geoService.getAll(address);
         int addressId = repository.saveGeoAddress(address, geoService.getLatitude(), geoService.getLongitude());
 
-        StringBuilder json = new StringBuilder("[");
+        List<Map<String, Object>> entries = new ArrayList<>();
         for (IWeather service : weatherServices) {
             service.getAll(address);
             eventPublisher.publish(address, service.getWindSpeed());
             repository.saveWeatherReading(addressId, service);
-            json.append("{")
-                    .append("\"provider\":\"").append(service.getName()).append("\",")
-                    .append("\"temperature\":").append(service.getTemperature()).append(",")
-                    .append("\"feelsLike\":").append(service.getFeelsLikeTemperature()).append(",")
-                    .append("\"humidity\":").append(service.getHumidity()).append(",")
-                    .append("\"windSpeed\":").append(service.getWindSpeed()).append(",")
-                    .append("\"windDirection\":\"").append(service.getWindDirection()).append("\",")
-                    .append("\"cloudCover\":\"").append(service.getCloudCover()).append("\"")
-                    .append("},");
+            entries.add(Map.of(
+                    "provider", service.getName(),
+                    "temperature", service.getTemperature(),
+                    "feelsLike", service.getFeelsLikeTemperature(),
+                    "humidity", service.getHumidity(),
+                    "windSpeed", service.getWindSpeed(),
+                    "windDirection", service.getWindDirection(),
+                    "cloudCover", service.getCloudCover()));
         }
-        if (json.charAt(json.length() - 1) == ',') json.deleteCharAt(json.length() - 1);
-        json.append("]");
-        return json.toString();
+        return gson.toJson(entries);
     }
 
     private void writeJson(HttpExchange exchange, String json) throws IOException {

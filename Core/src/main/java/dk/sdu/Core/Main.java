@@ -7,6 +7,7 @@ import dk.sdu.scs.common.services.IWeather;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.awt.Desktop;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.List;
@@ -36,5 +37,9 @@ public class Main {
         if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
             Desktop.getDesktop().browse(URI.create(serverUrl));
         }
+
+        // Exit when stdin closes (terminal window closed on Windows).
+        try { while (System.in.read() != -1); } catch (IOException ignored) {}
+        System.exit(0);
     }
 }

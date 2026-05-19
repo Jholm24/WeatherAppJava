@@ -8,6 +8,7 @@ module Core {
     requires spring.context;
     requires java.sql;
     requires io.github.cdimascio.dotenv.java;
+    requires com.google.gson;
     uses IWeather;
     uses IGeoLocation;
     opens dk.sdu.Core to spring.core, spring.beans, spring.context;
