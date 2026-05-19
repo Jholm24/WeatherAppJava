@@ -5,7 +5,7 @@ import java.io.OutputStream;
 import java.util.List;
 
 public class WindAlertObserver implements IWeatherObserver {
-    private static final double THRESHOLD = 10;
+    private static final double THRESHOLD = 28.5;
     private final List<OutputStream> clients;
 
     public WindAlertObserver(List<OutputStream> clients) {
