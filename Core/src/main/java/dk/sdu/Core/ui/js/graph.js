@@ -35,7 +35,11 @@ function renderChart() {
 
     const varConfig = VARIABLES.find(v => v.key === selectedVar);
     const sources = [...new Set(historyData.map(d => d.source))];
-    const labels = [...new Set(historyData.map(d => new Date(d.time).toLocaleTimeString()))];
+    // Use timestamps from one source only — both providers are polled at the same time,
+    // so their reading counts always match. Mixing timestamps from all sources doubles the labels.
+    const labels = historyData
+        .filter(d => d.source === sources[0])
+        .map(d => new Date(d.time).toLocaleTimeString());
 
     const datasets = sources.map(source => {
         const readings = historyData.filter(d => d.source === source);
